@@ -64,4 +64,7 @@ public class LoginController implements CommunityConstant {
 
         return "/site/operate-result";
     }
+
+
+
 }
