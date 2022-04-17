@@ -30,10 +30,10 @@ public class UserService implements CommunityConstant {
     @Autowired
     private TemplateEngine templateEngine;
 
-    @Value("community.path.domain")
+    @Value("${community.path.domain}")
     private String domain;
 
-    @Value("server.servlet.context-path")
+    @Value("${server.servlet.context-path}")
     private String contextPath;
 
     public User findUserById(int id) {
@@ -83,10 +83,11 @@ public class UserService implements CommunityConstant {
         Context context=new Context();
         context.setVariable("email",user.getEmail());
         String url=domain+contextPath+"/activation/"+user.getId()+"/"+user.getActivationCode();
-        System.out.println(url);
+
         context.setVariable("url",url);
 
         String content=templateEngine.process("/mail/activation",context);
+        System.out.println(content);
         mailClient.sendMail(user.getEmail(),"激活账号",content);
         return map;
     }
