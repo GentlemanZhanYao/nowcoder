@@ -1,9 +1,11 @@
 package com.nowcoder.community.controller;
 
+import com.nowcoder.community.annotation.LoginRequired;
 import com.nowcoder.community.entity.User;
 import com.nowcoder.community.service.UserService;
 import com.nowcoder.community.util.CommunityUtil;
 import com.nowcoder.community.util.HostHolder;
+import com.sun.deploy.net.HttpResponse;
 import javafx.geometry.Pos;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -12,12 +14,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletResponse;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 
 @Controller
 @RequestMapping("/user")
@@ -39,13 +45,14 @@ public class UserController {
 
     @Autowired
     private HostHolder hostHolder;
-
     @RequestMapping(path="/setting",method = RequestMethod.GET)
+    @LoginRequired
     public String getSettinPage(){
         return "/site/setting";
     }
 
     @RequestMapping(path = "/upload",method = RequestMethod.POST)
+    @LoginRequired
     public String uploadHeader(MultipartFile headerImage, Model model){
         if(headerImage==null){
             model.addAttribute("error","您还没有选择图片");
@@ -65,7 +72,38 @@ public class UserController {
         try {
             headerImage.transferTo(dest);
         }catch (IOException e){
-            logger.error("");
+            logger.error("上传文件失败"+e.getMessage());
+            throw new RuntimeException("上传文件失败，服务器发生异常");
+        }
+        //上传成功，更新路径到数据库,外部路径
+        User user=hostHolder.getUser();
+        String headerUrl=domain+contextPath+"/user/header/"+fileName;
+        userService.updateHeader(user.getId(),headerUrl);
+
+        return "redirect:/index";
+    }
+
+    @RequestMapping(path = "/header/{fileName}",method = RequestMethod.GET)
+    public void getHeader(@PathVariable("fileName")String fileName, HttpServletResponse response){
+        //服务器存放路径
+        fileName=uploadPath+"/"+fileName;
+
+        String suffix=fileName.substring(fileName.lastIndexOf(".")+1);
+        //响应图片
+        response.setContentType("image/"+suffix);
+        try(
+                OutputStream os = response.getOutputStream();
+                //输入流
+                FileInputStream fis=new FileInputStream(fileName);
+                ) {
+
+            byte[] buffer=new byte[1024];
+            int b=0;
+            while((b=fis.read(buffer))!=-1){
+                os.write(buffer,0,b);
+            }
+        }catch (IOException e){
+            logger.error("读取头像失败:"+e.getMessage());
         }
     }
 }
