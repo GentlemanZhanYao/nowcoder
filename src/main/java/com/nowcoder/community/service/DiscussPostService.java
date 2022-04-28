@@ -27,7 +27,7 @@ public class DiscussPostService {
     }
 
     //增加帖子
-    public int insertDiscussPost(DiscussPost post){
+    public int addDiscussPost(DiscussPost post){
         if(post==null)
             throw new IllegalArgumentException("参数不能为空");
         //将字符转义，防止xss注入
