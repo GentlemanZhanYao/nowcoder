@@ -1,5 +1,6 @@
 package com.nowcoder.community;
 
+
 import com.nowcoder.community.util.MailClient;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -14,6 +15,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 public class MailTest {
     @Autowired
     private MailClient mailClient;
+
+
 
     @Test
     public void mainTest(){

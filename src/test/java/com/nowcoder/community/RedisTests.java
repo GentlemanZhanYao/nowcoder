@@ -26,6 +26,7 @@ public class RedisTests {
     public void testStrings() {
         String redisKey = "test:count";
 
+
         redisTemplate.opsForValue().set(redisKey, 1);
 
         System.out.println(redisTemplate.opsForValue().get(redisKey));
